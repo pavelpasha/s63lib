@@ -16,6 +16,7 @@
 # Visual Studio Files
 Debug
 Release
+backup
 .vs
 *.suo
 *.csproj.user

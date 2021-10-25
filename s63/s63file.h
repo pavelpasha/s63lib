@@ -28,8 +28,8 @@
 // It`s more like a memory buffer with file interface, then an actual file implementation.
 // I think it`s almost impossible to implement an actual file or stream over a s63 cell
 // because of zip format specification. Yeah, we can decrypt cell portionally from any position,
-// and read decrypted data piece by piece, not loading all the data ino a memory. 
-// But we steel need to unzip it. And there is difficulties begin.
+// and read decrypted data piece by piece, not loading all the data into a memory. 
+// But we still need to unzip it. And there is difficulties begin.
 // To locate a file position and read its size into an zip archive, required to read Central Dir record, wich is located almost at the end of file.
 // So we anyway need to read and decrypt a whole cell file, and then pass this decrypted buffer to an unzipper. 
 class S63File {

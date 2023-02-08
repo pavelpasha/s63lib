@@ -358,7 +358,7 @@ std::string S63::createCellPermit(const std::string& HW_ID, const std::string& C
 	std::time_t expiry_time;
 	if (!parseYYYYMMDD(expiry_date, expiry_time)) {
 		puts("Invalid expiry date string. Must be in YYYYMMDD format and correct\n");
-		return false;
+		return "";
 	}
 	string cellpermit = cellname;
 	cellpermit.reserve(VALID_CELLPERMIT_SIZE);

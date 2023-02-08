@@ -50,7 +50,7 @@ static bool WipeEmptyDirs(std::filesystem::path P)
 
 int main(int argc, char* argv[])
 {
-	std::string projectIniFile = "./configs/msd5.ini"; //Assuming execution path in root source dir
+	std::string projectIniFile = "./configs/example.ini"; //Assuming execution path in root source dir
 	INIReader reader(projectIniFile);
 
 	if (reader.ParseError() < 0)

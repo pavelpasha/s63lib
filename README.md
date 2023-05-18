@@ -5,10 +5,14 @@ S63 charts actually the same as S57 is, but compressed with .zip and encrypted w
 In order to decrypt S63 cell (another words - convert it back to a plain S57), you need to know two things: a CELLPERMIT and HWID (A paper, i noticed below, explains what it is).
 Lets assume you have it. There is the s63.h file In this repository, which declares a few usefull functions.
 First of all you need to extract a cellkeys from a CELLPERMIT:
-static std::pair<std::string,std::string> extractCellKeysFromCellpermit(const std::string& cellpermit, const std::string& HW_ID, bool& ok);
+
+```static std::pair<std::string,std::string> extractCellKeysFromCellpermit(const std::string& cellpermit, const std::string& HW_ID, bool& ok);```
+
 You pass to it your CELLPERMIT and HWID and it returns you a pair of cellkeys.
 With those cellkeys you can finally decpypt your s63 cell.
-static S63Error decryptAndUnzipCellByKey(const std::string& in_path, const std::pair<std::string, std::string>& keys, const std::string& out_path);
+
+```static S63Error decryptAndUnzipCellByKey(const std::string& in_path, const std::pair<std::string, std::string>& keys, const std::string& out_path);```
+
 First argument - path of your s63 cell; second - cellkeys; third - the path where your s57 cell you want to be saved.
 
 For example:

@@ -27,6 +27,8 @@ if(!ok) printf("error\n");
 auto error = S63::decryptAndUnzipCellByKey(s63_cell_path, cell_keys, output_cell_path);
 ```
 
+Basically, all the low-level functionality of this library is declared in the s63.h header.
+The S63Client class is an example how it might be used in a user-side application, like a chartplotter.
 
  
 

@@ -24,7 +24,6 @@
  */
 
 #include "s63.h"
-#include "s63file.h"
 
 class S63Client : public S63
 {
@@ -49,8 +48,8 @@ public:
 	std::string getUserpermit();
 
 	// Opens a s63 file, finds a corresponding cellpermit among installed,
-	// then decrypted and unziped cell retuns as S63File, which is actually a wrapper around a memory buffer with a file-like interface 
-	S63File  open(const std::string& path);
+	// then decrypted and unziped cell retuns as a memory buffer (yeah, string used just as a byte array)
+	std::string open(const std::string& path);
 
 	S63Error decryptAndUnzipCell(const std::string& in_path, const std::string& out_path);
 	S63Error decryptAndUnzipCell(const std::string& in_path, const std::string& cellpermit, const std::string& out_path);

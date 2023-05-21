@@ -56,7 +56,8 @@ public:
 
 	static std::string createCellPermit(const std::string& HW_ID, const std::string& CK1, const std::string& CK2, const std::string& cellname, const std::string& expiry_date);
 	static std::pair<std::string,std::string> extractCellKeysFromCellpermit(const std::string& cellpermit, const std::string& HW_ID, bool& ok);
-
+	
+	// Note, that after being decrypted, cell still need to be uncompressed
 	static S63Error decryptCell(const std::string& path, const std::pair<std::string, std::string>& keys, std::string& out_buf);
 	static S63Error decryptCell(std::string& buf, const std::string& key);
 

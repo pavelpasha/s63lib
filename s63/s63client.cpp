@@ -45,8 +45,8 @@ S63Error S63Client::decryptAndUnzipCell(const std::string& in_path, const std::s
 	string cellname = in_path.substr(in_path.size() - VALID_CELLNAME_SIZE - 4, VALID_CELLNAME_SIZE);
 
 	if (m_permits.find(cellname) == m_permits.end()) {
-		//SSE 21 ñ Decryption failed no valid cell permit found. Permits may be for another system or new 
-		//permits may be required, please contact your supplier to obtain a new licence.î
+		//SSE 21 ‚Äì Decryption failed no valid cell permit found. Permits may be for another system or new 
+		//permits may be required, please contact your supplier to obtain a new licence.‚Äù
 		printf("There is no permit for basecell %s\n", cellname.c_str());
 		return S63_ERR_PERMIT;
 	}
@@ -133,12 +133,12 @@ bool S63Client::installCellPermit(const std::string& cellpermit) {
 }
 
 
-S63File S63Client::open(const std::string& path) {
+std::string S63Client::open(const std::string& path) {
 	string cellname = path.substr(path.size() - VALID_CELLNAME_SIZE - 4, VALID_CELLNAME_SIZE);
 
 	if (m_permits.find(cellname) == m_permits.end()) {
-		puts("SSE 21 ñ Decryption failed no valid cell permit found. Permits may be for another system or new \
-		permits may be required, please contact your supplier to obtain a new licence.î");
+		puts("SSE 21 ‚Äì Decryption failed no valid cell permit found. Permits may be for another system or new \
+		permits may be required, please contact your supplier to obtain a new licence.‚Äù");
 		return S63File();
 	}
 	bool ok;
@@ -157,7 +157,7 @@ S63File S63Client::open(const std::string& path) {
 		return S63File();
 	}
 	
-	return S63File(unzipped);
+	return unzipped;
 	
 }
 

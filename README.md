@@ -36,7 +36,7 @@ Basically, all the low-level functionality of this library is declared in the s6
 The S63Client class is an example how it might be used in a user-side application, like a chartplotter.
 ```c
 //Create an instance of the S63Client, witch is bounded to it`s HW_ID (Hardware id of this device), M_KEY (Manufactorer key) and M_ID (Manufactorer id) 
-S63Client s63;
+S63Client s63("HWID","MKEY","MID");
 // Get an USERPERMIT for this device. And buy yoursef a some nice charts with this permit.
 const auto userpermit = s63.getUserpermit();
 

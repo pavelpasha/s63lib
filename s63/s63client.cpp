@@ -139,22 +139,22 @@ std::string S63Client::open(const std::string& path) {
 	if (m_permits.find(cellname) == m_permits.end()) {
 		puts("SSE 21 – Decryption failed no valid cell permit found. Permits may be for another system or new \
 		permits may be required, please contact your supplier to obtain a new licence.”");
-		return S63File();
+		return {};
 	}
 	bool ok;
 	key_pair keys = S63::extractCellKeysFromCellpermit(m_permits[cellname],m_hwid,ok);
 
 	if (!ok) {
-		return S63File();
+		return {};
 	}
 	std::string decrypted;
 
 	if (S63::decryptCell(path, keys, decrypted) != S63_ERR_OK) {
-		return S63File();
+		return {};
 	}
 	std::string unzipped;
 	if (!SimpleZip::unzip(decrypted, unzipped)) {
-		return S63File();
+		return {};
 	}
 	
 	return unzipped;

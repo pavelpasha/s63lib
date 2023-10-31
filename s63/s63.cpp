@@ -51,7 +51,7 @@ bool S63::_validateCellPermit(const std::string& cellpermit, const std::string& 
 	}
 	
 	/* CRC32 contains the encrypted check sum for the Cell Permit.It is
-		encrypted using the Blowfish algorithm with the Data Client’s
+		encrypted using the Blowfish algorithm with the Data Clientâ€™s
 		specific HW_ID and is an 8 byte number.*/
 
 	// 1) Extract the last 16 hex characters (ENC Check Sum) from the Cell Permit.
@@ -68,7 +68,7 @@ bool S63::_validateCellPermit(const std::string& cellpermit, const std::string& 
 	unsigned long* crc_from_permit = reinterpret_cast<unsigned long*>(&permit_crc32[0]);
 	*crc_from_permit = swap_bytes(*crc_from_permit);
 
-	// 4) Hash the remainder of the Cell Permit as left after ‘a’ using the algorithm CRC32.
+	// 4) Hash the remainder of the Cell Permit as left after â€˜aâ€™ using the algorithm CRC32.
 	unsigned long calc_crc32 = crc32(0L, (unsigned char*)&cellpermit[0], VALID_CELLPERMIT_SIZE - 16);
 
 	// 5) Compare the crc from permit and calculated one.If they are the same, the Cell Permit is valid.If
@@ -172,7 +172,7 @@ S63Error S63::decryptCell(const std::string& path, const key_pair& keys, std::st
 		m_bf.setKey(keys.second);
 
 		m_bf.decrypt((unsigned char*)test_buf, 8);
-		if (*reinterpret_cast<uint32_t*>(&test_buf[0]) != VALID_ZIP_SIGNATURE) {
+		if (*reinterpret_cast<const uint32_t*>(&test_buf[0]) != VALID_ZIP_SIGNATURE) {
 
 			puts("SSE 21 - WARNING DECRYPTION FAILED - DECRYPTION KEYS INVALID\n");
 			return S63_ERR_KEY;
@@ -183,7 +183,7 @@ S63Error S63::decryptCell(const std::string& path, const key_pair& keys, std::st
 
 	// Ok, key is valid. Now read all the whole file an decrypt it
 	out_buf.resize(size);
-	encryptedFile.read(out_buf.data(), size);
+	encryptedFile.read(const_cast<char*>(out_buf.data()), size);
 	encryptedFile.close();
 
 	m_bf.decrypt(out_buf);
@@ -252,15 +252,15 @@ std::string S63::createUserPermit(const std::string& M_KEY, const std::string& H
 	//c) Hash the 16 hexadecimal characters using the algorithm CRC32
 	unsigned long calc_crc32 = crc32(0L, (unsigned char*)userpermit.data(), 16);
 	
-	//d) Convert output from ‘c’ to an 8 character hexadecimal string.Any alphabetic characters
+	//d) Convert output from â€˜câ€™ to an 8 character hexadecimal string.Any alphabetic characters
 	//should be in upper case.This is the Check Sum
 	string hex_crc = n2hexstr(calc_crc32);
 
-	//e) Append to ‘b’ the output from ‘d’.
+	//e) Append to â€˜bâ€™ the output from â€˜dâ€™.
 	userpermit += std::move(hex_crc);
 
 	//f) Convert the M_ID to a 4 character string.Any alphabetic characters should be in upper case.
-	//g) Append to ‘e’ the output from ‘f’.This is the User Permit.
+	//g) Append to â€˜eâ€™ the output from â€˜fâ€™.This is the User Permit.
 	userpermit += string_to_hex(M_ID);
 
 	return userpermit;
@@ -305,7 +305,7 @@ std::string S63::extractHwIdFromUserpermit(const std::string& userpermit, const 
 	//c) Hash the Encrypted HW_ID(the first 16 characters of the User Permit) using the algorithm CRC32.
 	unsigned long cacl_crc32 = crc32(0L, reinterpret_cast<const unsigned char*>(userpermit.data()), 16);
 
-	//d) Compare the outputs of ‘b’ and ‘c’.If they are identical, the User Permit is valid.If the two results
+	//d) Compare the outputs of â€˜bâ€™ and â€˜câ€™.If they are identical, the User Permit is valid.If the two results
 	// differ the User Permit is invalid and the HW_ID cannot be obtained.
 	cacl_crc32 = swap_bytes(cacl_crc32);
 	if (0 != std::memcmp(permit_crc32.data(), &cacl_crc32, sizeof(unsigned long))) {
@@ -364,32 +364,32 @@ std::string S63::createCellPermit(const std::string& HW_ID, const std::string& C
 	cellpermit.reserve(VALID_CELLPERMIT_SIZE);
 	//a) Remove the file extension from the name of the ENC file.This leaves 8 characters and is the Cell Name of the Cell Permit.
 	// This procedure takes cellname without extension 
-	//b) Append the licence Expiry Date, in the format YYYYMMDD, to the Cell Name from ‘a’.
+	//b) Append the licence Expiry Date, in the format YYYYMMDD, to the Cell Name from â€˜aâ€™.
 	cellpermit.append(expiry_date);
 	//c) Append the first byte of HW_ID to the end of HW_ID to form a 6 byte HW_ID(called HW_ID6).This is
 	//to create a 48 bit key to encrypt the cell keys.
 	string HW_ID6 = HW_ID + HW_ID[0];
-	//d) Encrypt Cell Key 1 using the Blowfish algorithm with HW_ID6 from ‘c’ as the key to create ECK1.
+	//d) Encrypt Cell Key 1 using the Blowfish algorithm with HW_ID6 from â€˜câ€™ as the key to create ECK1.
 	//e) Convert ECK1 to 16 hexadecimal characters.Any alphabetic character is to be in upper case.
-	//f) Append to ‘b’ the output from ‘e’.
+	//f) Append to â€˜bâ€™ the output from â€˜eâ€™.
 	//h) Convert ECK2 to 16 hexadecimal characters.Any alphabetic characters are to be in upper case.
-	//i) Append to ‘f’ the output from ‘h’
+	//i) Append to â€˜fâ€™ the output from â€˜hâ€™
 	m_bf.setKey(HW_ID6);
 	cellpermit += string_to_hex(m_bf.encryptConst(CK1));
 	cellpermit += string_to_hex(m_bf.encryptConst(CK2));
 	
-	//j) Hash the output from ‘i’ using the algorithm CRC32.Note the hash is computed after it has been
+	//j) Hash the output from â€˜iâ€™ using the algorithm CRC32.Note the hash is computed after it has been
 	//converted to a hex string as opposed to the User Permit where the hash is computed on the raw binary data.
 	unsigned long calc_crc32 = crc32(0L, (unsigned char*)&cellpermit[0], VALID_CELLPERMIT_SIZE - 16);
 	calc_crc32 = swap_bytes(calc_crc32);
-	//k) Encrypt the hash(output from ‘j’) using the Blowfish algorithm with HW_ID6 as the key.
+	//k) Encrypt the hash(output from â€˜jâ€™) using the Blowfish algorithm with HW_ID6 as the key.
 	m_bf.setKey(HW_ID6);
 	string crc(reinterpret_cast<const char*>(&calc_crc32),4);
 	m_bf.encrypt(crc);
 	cellpermit += string_to_hex(crc);
 
-	//l) Convert output from ‘k’ to a 16 character hexadecimal string.Any alphabetic character is to be in upper case.This forms the ENC Check Sum.
-	//m) Append to ‘i’ the output from ‘l’.This is the Cell Permit
+	//l) Convert output from â€˜kâ€™ to a 16 character hexadecimal string.Any alphabetic character is to be in upper case.This forms the ENC Check Sum.
+	//m) Append to â€˜iâ€™ the output from â€˜lâ€™.This is the Cell Permit
 
 	return cellpermit;
 

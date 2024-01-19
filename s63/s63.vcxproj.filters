@@ -75,9 +75,6 @@
     <ClCompile Include="blowfish.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="s63file.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="s63.h">
@@ -159,9 +156,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="blowfish.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="s63file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -158,7 +158,6 @@
     <ClCompile Include="blowfish.cpp" />
     <ClCompile Include="s63.cpp" />
     <ClCompile Include="s63client.cpp" />
-    <ClCompile Include="s63file.cpp" />
     <ClCompile Include="simple_zip.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="zlib\adler32.c" />
@@ -192,7 +191,6 @@
     <ClInclude Include="minizip\ioapi_mem.h" />
     <ClInclude Include="s63.h" />
     <ClInclude Include="s63client.h" />
-    <ClInclude Include="s63file.h" />
     <ClInclude Include="simple_zip.h" />
     <ClInclude Include="s63utils.hpp" />
     <ClInclude Include="zlib\crc32.h" />

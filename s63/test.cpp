@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include "blowfish.h"
-#include "s63Client.h"
+#include "s63client.h"
 #include "simple_zip.h"
 #include "s63utils.hpp"
 

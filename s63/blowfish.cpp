@@ -299,7 +299,7 @@ CBlowFish::CBlowFish(const std::string& key, const SBlock& roChain) {
 void CBlowFish::setKey(const std::string& key) {
 	int keysize = key.size();
 	if (keysize < 1)
-		throw std::exception("Incorrect key length");
+		throw std::runtime_error("Incorrect key length");
 	if (keysize > 56)
 		keysize = 56;
 	unsigned char aucLocalKey[56];
@@ -439,7 +439,7 @@ void CBlowFish::decrypt(unsigned char* buf, size_t n) const {
 
 
 	if ((n == 0) || (n % 8 != 0))
-		throw std::exception("Incorrect buffer length");
+		throw std::runtime_error("Incorrect buffer length");
 
 	SBlock work;
 	for (; n >= 8; n -= 8)
@@ -455,7 +455,7 @@ void CBlowFish::decrypt(std::string& buf, bool remove_padding) const {
 	size_t n = buf.size();
 
 	if ((n == 0) || (n % 8 != 0))
-		throw std::exception("Incorrect buffer length");
+		throw std::runtime_error("Incorrect buffer length");
 
 	unsigned char* char_buf = reinterpret_cast<unsigned char*>(&buf[0]);
 	SBlock work;

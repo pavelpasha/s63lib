@@ -26,6 +26,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstring> // for memcmp
 
 #include "simple_zip.h"
 #include "blowfish.h"
@@ -124,7 +125,7 @@ S63Error S63::decryptCell(std::string& buf, const std::string& key) {
 
 	m_bf.setKey(key);
 	m_bf.decrypt((unsigned char*)buf.data(), 8);
-	if (*reinterpret_cast<uint32_t*>(buf.data()) != VALID_ZIP_SIGNATURE) {
+	if (*reinterpret_cast<const uint32_t*>(buf.data()) != VALID_ZIP_SIGNATURE) {
 	
 		return S63_ERR_KEY;
 	}
@@ -250,7 +251,7 @@ std::string S63::createUserPermit(const std::string& M_KEY, const std::string& H
 	userpermit.reserve(VALID_USERPERMIT_SIZE);
 
 	//c) Hash the 16 hexadecimal characters using the algorithm CRC32
-	unsigned long calc_crc32 = crc32(0L, (unsigned char*)userpermit.data(), 16);
+	uint32_t calc_crc32 = crc32(0L, (unsigned char*)userpermit.data(), 16);
 	
 	//d) Convert output from ‘c’ to an 8 character hexadecimal string.Any alphabetic characters
 	//should be in upper case.This is the Check Sum
@@ -302,17 +303,17 @@ std::string S63::extractHwIdFromUserpermit(const std::string& userpermit, const 
 		return "";
 	}
 
-	//c) Hash the Encrypted HW_ID(the first 16 characters of the User Permit) using the algorithm CRC32.
-	unsigned long cacl_crc32 = crc32(0L, reinterpret_cast<const unsigned char*>(userpermit.data()), 16);
 
+	//c) Hash the Encrypted HW_ID(the first 16 characters of the User Permit) using the algorithm CRC32.
+	uint32_t cacl_crc32 = crc32(0L, reinterpret_cast<const unsigned char*>(userpermit.data()), 16);
 	//d) Compare the outputs of ‘b’ and ‘c’.If they are identical, the User Permit is valid.If the two results
 	// differ the User Permit is invalid and the HW_ID cannot be obtained.
 	cacl_crc32 = swap_bytes(cacl_crc32);
-	if (0 != std::memcmp(permit_crc32.data(), &cacl_crc32, sizeof(unsigned long))) {
+	if (0 != std::memcmp(permit_crc32.data(), &cacl_crc32, sizeof(cacl_crc32))) {
 		puts("SSE 17 - WARNING INVALID USERPERMIT\n");
 		return "";
 	}
-
+	
 	//e) If the User Permit is valid, convert the Encrypted HW_ID to 8 bytes.
 	string hw_id = hex_to_string(userpermit, 0, 16);
 	if (hw_id.size() != 8) {
@@ -380,7 +381,7 @@ std::string S63::createCellPermit(const std::string& HW_ID, const std::string& C
 	
 	//j) Hash the output from ‘i’ using the algorithm CRC32.Note the hash is computed after it has been
 	//converted to a hex string as opposed to the User Permit where the hash is computed on the raw binary data.
-	unsigned long calc_crc32 = crc32(0L, (unsigned char*)&cellpermit[0], VALID_CELLPERMIT_SIZE - 16);
+	uint32_t calc_crc32 = crc32(0L, (unsigned char*)&cellpermit[0], VALID_CELLPERMIT_SIZE - 16);
 	calc_crc32 = swap_bytes(calc_crc32);
 	//k) Encrypt the hash(output from ‘j’) using the Blowfish algorithm with HW_ID6 as the key.
 	m_bf.setKey(HW_ID6);

@@ -119,7 +119,7 @@ static int uncompressData(const char* const abSrc, size_t nLenSrc, char* abDst, 
 
 	int nErr, nRet = -1;
 
-	nErr = inflateInit2(&zInfo, -MAX_WBITS, 20);               // zlib function
+	nErr = inflateInit2(&zInfo, -MAX_WBITS);               // zlib function
 	if (nErr == Z_OK) {
 		nErr = inflate(&zInfo, Z_FINISH);     // zlib function
 		if (nErr == Z_STREAM_END) {
@@ -240,7 +240,7 @@ bool SimpleZip::unzip(const std::string& in, std::string& out) {
 
 
 	if (file_header->compression_method == Z_DEFLATED) {
-		int ret = uncompressData(data_start_ptr, compressed_size, out.data(), uncompressed_size);
+		int ret = uncompressData(data_start_ptr, compressed_size, const_cast<char*>(out.data()), uncompressed_size);
 
 		if (ret < 0 || ret != uncompressed_size) {
 			puts("erro while decompresing\n");
@@ -249,7 +249,7 @@ bool SimpleZip::unzip(const std::string& in, std::string& out) {
 	}
 	else { // NO COMPRESSION
 		puts("there no compresson\n");
-		memcpy(out.data(), data_start_ptr,compressed_size);
+		memcpy(const_cast<char*>(out.data()), data_start_ptr,compressed_size);
 	}
 
 	unsigned long  crc = crc32(0L, (const unsigned char*)out.data(), uncompressed_size);

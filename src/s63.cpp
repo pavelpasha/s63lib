@@ -26,12 +26,14 @@
 
 #include <iostream>
 #include <fstream>
-#include <cstring> // for memcmp
+#include <cstring>
+
+#include <zlib.h>
 
 #include "simple_zip.h"
 #include "blowfish.h"
-#include "s63utils.hpp"
-#include "zlib/zlib.h"
+#include "utils.hpp"
+
 
 #define VALID_ZIP_SIGNATURE 0x04034b50
 #define SECONDS_TO_DAYS(S) S/86400
@@ -39,8 +41,9 @@
 using key_pair = std::pair<std::string, std::string>;
 
 using namespace std;
-using namespace hexutils;
+using namespace s63utils;
 
+namespace s63lib {
 CBlowFish S63::m_bf;
 
 bool S63::_validateCellPermit(const std::string& cellpermit, const std::string& HW_ID6) {
@@ -66,11 +69,11 @@ bool S63::_validateCellPermit(const std::string& cellpermit, const std::string& 
 	m_bf.setKey(HW_ID6);
 	m_bf.decrypt(permit_crc32);
 
-	unsigned long* crc_from_permit = reinterpret_cast<unsigned long*>(&permit_crc32[0]);
+    uint32_t* crc_from_permit = reinterpret_cast<uint32_t*>(&permit_crc32[0]);
 	*crc_from_permit = swap_bytes(*crc_from_permit);
 
 	// 4) Hash the remainder of the Cell Permit as left after ‘a’ using the algorithm CRC32.
-	unsigned long calc_crc32 = crc32(0L, (unsigned char*)&cellpermit[0], VALID_CELLPERMIT_SIZE - 16);
+    uint32_t calc_crc32 = crc32(0L, (uint8_t*)&cellpermit[0], VALID_CELLPERMIT_SIZE - 16);
 
 	// 5) Compare the crc from permit and calculated one.If they are the same, the Cell Permit is valid.If
 	//	they differ, the Cell Permit is corrupt and Cell Permit is not to be used.
@@ -115,40 +118,40 @@ bool S63::_validateCellPermit(const std::string& cellpermit, const std::string& 
 
 
 
-S63Error S63::decryptCell(std::string& buf, const std::string& key) {
+S63Result S63::decryptCell(std::vector<uint8_t>& buf, const std::string& key) {
 
 	size_t size = buf.size();
 	if (size < 8 || size % 8 != 0) {
 		puts("Wrong file size\n");
-		return S63_ERR_DATA;
+        return S63Result::DATA_ERROR;
 	}
 
 	m_bf.setKey(key);
 	m_bf.decrypt((unsigned char*)buf.data(), 8);
 	if (*reinterpret_cast<const uint32_t*>(buf.data()) != VALID_ZIP_SIGNATURE) {
 	
-		return S63_ERR_KEY;
+        return S63Result::KEY_ERROR;
 	}
 
 	m_bf.decrypt(buf);
 
-	return S63_ERR_OK;
+    return S63Result::OK;
 }
 
-void S63::encryptCell(std::string& buf, const std::string& key) {
+void S63::encryptCell(std::vector<uint8_t>& buf, const std::string& key) {
 
 	m_bf.setKey(key);
 	m_bf.encrypt(buf);
 
 }
 
-S63Error S63::decryptCell(const std::string& path, const key_pair& keys, std::string& out_buf) {
+S63Result S63::decryptCell(const std::string& path, const key_pair& keys, std::vector<uint8_t>& out_buf) {
 
 	std::ifstream encryptedFile(path, std::ios::binary);
 
 	if (!encryptedFile.is_open()) {
 		puts("Could not open encrypted file for reading\n");
-		return S63_ERR_FILE;
+        return S63Result::FILE_ERROR;
 	}
 
 
@@ -156,7 +159,7 @@ S63Error S63::decryptCell(const std::string& path, const key_pair& keys, std::st
 	size_t size = encryptedFile.tellg();
 	if (size % 8 != 0) {
 		puts("Wrong file size\n");
-		return S63_ERR_DATA;
+        return S63Result::DATA_ERROR;
 	}
 	m_bf.setKey(keys.first);
 	encryptedFile.seekg(0);
@@ -176,7 +179,7 @@ S63Error S63::decryptCell(const std::string& path, const key_pair& keys, std::st
 		if (*reinterpret_cast<const uint32_t*>(&test_buf[0]) != VALID_ZIP_SIGNATURE) {
 
 			puts("SSE 21 - WARNING DECRYPTION FAILED - DECRYPTION KEYS INVALID\n");
-			return S63_ERR_KEY;
+            return S63Result::KEY_ERROR;
 		}
 
 	}
@@ -184,42 +187,42 @@ S63Error S63::decryptCell(const std::string& path, const key_pair& keys, std::st
 
 	// Ok, key is valid. Now read all the whole file an decrypt it
 	out_buf.resize(size);
-	encryptedFile.read(const_cast<char*>(out_buf.data()), size);
+    encryptedFile.read(reinterpret_cast<char*>(out_buf.data()), size);
 	encryptedFile.close();
 
 	m_bf.decrypt(out_buf);
 
-	return S63_ERR_OK;
+    return S63Result::OK;
 }
 
-S63Error S63::decryptAndUnzipCellByKey(const std::string& in_path, const key_pair& keys, const std::string& out_path) {
+S63Result S63::decryptAndUnzipCellByKey(const std::string& in_path, const key_pair& keys, const std::string& out_path) {
 
-	std::string decrypted;
+    std::vector<uint8_t> decrypted;
 
-	S63Error err = decryptCell(in_path,keys,decrypted);
-	if (err != S63_ERR_OK) {
+    S63Result err = decryptCell(in_path,keys,decrypted);
+    if (err != S63Result::OK) {
 		return err;
 	}
 
 	// Cell compressed with zip. So we got to unzip it.
 	SimpleZip unz;
-	string out_buf;
+    std::vector<uint8_t> out_buf;
 	if (!unz.unzip(decrypted, out_buf)) {
 		puts("Cant unzip cell\n");
-		return S63_ERR_ZIP;
+        return S63Result::ZIP_ERROR;
 	}
 
 	std::ofstream decryptedFile(out_path, std::ios::binary);
 
 	if (!decryptedFile.is_open()) {
 		puts("Could not open dencrypted file for writing\n");
-		return S63_ERR_FILE;
+        return S63Result::FILE_ERROR;
 	}
 
-	decryptedFile.write(out_buf.data(), out_buf.size());
+    decryptedFile.write(reinterpret_cast<char*>(out_buf.data()), out_buf.size());
 	decryptedFile.close();
 	printf("Cell succefully decrypted\n");
-	return S63_ERR_OK;
+    return S63Result::OK;
 }
 
 
@@ -376,8 +379,8 @@ std::string S63::createCellPermit(const std::string& HW_ID, const std::string& C
 	//h) Convert ECK2 to 16 hexadecimal characters.Any alphabetic characters are to be in upper case.
 	//i) Append to ‘f’ the output from ‘h’
 	m_bf.setKey(HW_ID6);
-	cellpermit += string_to_hex(m_bf.encryptConst(CK1));
-	cellpermit += string_to_hex(m_bf.encryptConst(CK2));
+    cellpermit += string_to_hex(m_bf.encrypt(CK1));
+    cellpermit += string_to_hex(m_bf.encrypt(CK2));
 	
 	//j) Hash the output from ‘i’ using the algorithm CRC32.Note the hash is computed after it has been
 	//converted to a hex string as opposed to the User Permit where the hash is computed on the raw binary data.
@@ -428,4 +431,4 @@ std::pair<std::string, std::string> S63::extractCellKeysFromCellpermit(const std
 	return cell_keys;
 
 }
-
+}

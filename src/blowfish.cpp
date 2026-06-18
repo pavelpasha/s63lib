@@ -10,13 +10,11 @@
  */
 
 #include <cstring>
-#include <exception>
-#include <iostream>
 #include <cassert>
 
  //Initialization with a fixed string which consists of the hexadecimal digits of PI (less the initial 3)
  //P-array, 18 32-bit subkeys
-const unsigned int CBlowFish::scm_auiInitP[18] = {
+const constexpr unsigned int scm_auiInitP[18] = {
 	0x243f6a88, 0x85a308d3, 0x13198a2e, 0x03707344,
 	0xa4093822, 0x299f31d0, 0x082efa98, 0xec4e6c89,
 	0x452821e6, 0x38d01377, 0xbe5466cf, 0x34e90c6c,
@@ -25,7 +23,7 @@ const unsigned int CBlowFish::scm_auiInitP[18] = {
 };
 
 //Four 32-bit S-boxes with 256 entries each
-const unsigned int CBlowFish::scm_auiInitS[4][256] = {
+const constexpr unsigned int scm_auiInitS[4][256] = {
 	//0
 	{0xd1310ba6, 0x98dfb5ac, 0x2ffd72db, 0xd01adfb7,
 	 0xb8e1afed, 0x6a267e96, 0xba7c9045, 0xf12c7f99,
@@ -291,6 +289,7 @@ const unsigned int CBlowFish::scm_auiInitS[4][256] = {
 		0xb74e6132, 0xce77e25b, 0x578fdfe3, 0x3ac372e6}
 };
 
+namespace s63lib {
 //Constructor - Initialize the P and S boxes for a given Key
 CBlowFish::CBlowFish(const std::string& key, const SBlock& roChain) {
 	setKey(key);
@@ -319,7 +318,7 @@ void CBlowFish::setKey(const std::string& key) {
 		x = 0;
 		for (int n = 4; n--; )
 		{
-			int iVal = (int)(*p);
+            //int iVal = (int)(*p);
 			x <<= 8;
 			x |= *(p++);
 			iCount++;
@@ -381,7 +380,7 @@ void CBlowFish::Decrypt(SBlock& block) const
 }
 
 //Semi-Portable Byte Shuffling
-inline void BytesToBlock(unsigned char const* p, SBlock& b)
+void CBlowFish::BytesToBlock(unsigned char const* p, SBlock& b)
 {
 	unsigned int y;
 	//Left
@@ -412,7 +411,7 @@ inline void BytesToBlock(unsigned char const* p, SBlock& b)
 	b.m_uir |= y;
 }
 
-inline void BlockToBytes(SBlock const& b, unsigned char* p)
+void CBlowFish::BlockToBytes(SBlock const& b, unsigned char* p)
 {
 	unsigned int y;
 	//Right
@@ -435,65 +434,20 @@ inline void BlockToBytes(SBlock const& b, unsigned char* p)
 	*--p = extract_byte(y);
 }
 
-void CBlowFish::decrypt(unsigned char* buf, size_t n) const {
+void CBlowFish::decrypt(uint8_t* buf, size_t n) const {
 
+    if ((n == 0) || (n % 8 != 0))
+        throw std::runtime_error("Incorrect buffer length");
 
-	if ((n == 0) || (n % 8 != 0))
-		throw std::runtime_error("Incorrect buffer length");
-
-	SBlock work;
-	for (; n >= 8; n -= 8)
-	{
-		BytesToBlock(buf, work);
-		Decrypt(work);
-		BlockToBytes(work, buf += 8);
-	}
+    SBlock work;
+    for (; n >= 8; n -= 8)
+    {
+        BytesToBlock(buf, work);
+        Decrypt(work);
+        BlockToBytes(work, buf += 8);
+    }
 	
 }
-void CBlowFish::decrypt(std::string& buf, bool remove_padding) const {
-
-	size_t n = buf.size();
-
-	if ((n == 0) || (n % 8 != 0))
-		throw std::runtime_error("Incorrect buffer length");
-
-	unsigned char* char_buf = reinterpret_cast<unsigned char*>(&buf[0]);
-	SBlock work;
-	for (; n >= 8; n -= 8)
-	{
-		BytesToBlock(char_buf, work);
-		Decrypt(work);
-		BlockToBytes(work, char_buf += 8);
-	}
-	if (remove_padding) {
-		uint8_t padding_size = buf.back();
-		if(padding_size != 0 && padding_size < buf.size())
-		buf.erase(buf.size() - padding_size);
-	}
-}
-
-void CBlowFish::encrypt(std::string& buf) const {
-	
-
-	if (buf.size() % 8 != 0) {
-		// Add padding as per PKCS5
-		// Ref: RFC 5652 http://tools.ietf.org/html/rfc5652#section-6.3
-		uint8_t paddingLength = 8 - (buf.size() % 8);
-		std::string padding(paddingLength, static_cast<char>(paddingLength));
-		buf = buf + padding;
-		
-	}
-	
-	size_t n = buf.size();
-	assert(n % 8 == 0);
-	SBlock work;
-	unsigned char* in = reinterpret_cast<unsigned char*>(&buf[0]);
-	for (; n >= 8; n -= 8)
-	{
-		BytesToBlock(in, work);
-		Encrypt(work);
-		BlockToBytes(work, in += 8);
-	}
 
 }
 

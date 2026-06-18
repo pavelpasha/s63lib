@@ -2,7 +2,7 @@
 #include <string>
 #include <ctime>
 
-namespace hexutils {
+namespace s63utils {
 	static int hex_value(unsigned char hex_digit)
 	{
 		static const signed char hex_values[256] = {
@@ -108,7 +108,7 @@ namespace hexutils {
 		}
 		return output;
 	}
-}
+
 
 
 static inline unsigned long swap_bytes(unsigned long val)
@@ -170,4 +170,6 @@ static bool parseYYYYMMDD(const std::string& str, time_t& datetime)
 
 	return true;
 };
+
+}
 

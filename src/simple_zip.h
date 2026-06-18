@@ -25,22 +25,24 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 //This class is not a fully functional zip implementation.
 //It was designed to a very specific purpose: zip and unzip 
 //a single ENC Cell, according to the S63 standart.
 //It supports only ZIP32 with deflate compression method.
 
-class SimpleZip
-{
-public:
-	// Uncompress a zip file from one buffer(in) into another(out)
-	static bool unzip(const std::string& in, std::string& out);
-	// Compress a buffer(in) with a given filename to a zip archive buffer(out) 
-	static bool zip(const std::string& filename, const std::string& in, std::string& out);
-	//void zipInfo(const std::string& path);
+namespace s63lib {
+    class SimpleZip
+    {
+    public:
+        // Uncompress a zip file from one buffer(in) into another(out)
+        static bool unzip(const std::vector<uint8_t>& in, std::vector<uint8_t>& out);
+        // Compress a buffer(in) with a given filename to a zip archive buffer(out)
+        static bool zip(const std::string& filename, const std::vector<uint8_t>& in, std::vector<uint8_t>& out);
+        //void zipInfo(const std::string& path);
 
-private:
-	static const char* findEOCD(const char* buf, size_t len);
-};
-
+    private:
+        static const uint8_t* findEOCD(const uint8_t* buf, size_t len);
+    };
+}

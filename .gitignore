@@ -17,9 +17,13 @@
 Debug
 Release
 backup
+build
+*.vcxproj*
 .vs
 *.suo
 *.csproj.user
 *.vbproj.user
+*.sln
+.qtcreator
 ipch
 *sdf

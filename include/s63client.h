@@ -25,40 +25,43 @@
 
 #include "s63.h"
 
-class S63Client : public S63
-{
-public:
-	S63Client(const std::string& HW_ID, const std::string& M_KEY, const std::string& M_ID);
-	inline const std::string& getHWID() const {
-		return m_hwid;
-	}
-	inline const std::string& getMID() const {
-		return m_mid;
-	}
-	inline const std::string& getMKEY() const {
-		return m_mkey;
-	}
-	void setHWID(const std::string& HW_ID);
-	inline void setMID(const std::string& M_ID)  { m_mid = M_ID; }
-	inline void setMKEY(const std::string& M_KEY) { m_mkey = M_KEY; }
+#include <unordered_map>
+namespace s63lib {
+    class S63Client : public S63
+    {
+    public:
+        S63Client(const std::string& HW_ID, const std::string& M_KEY, const std::string& M_ID);
+        inline const std::string& getHWID() const {
+            return m_hwid;
+        }
+        inline const std::string& getMID() const {
+            return m_mid;
+        }
+        inline const std::string& getMKEY() const {
+            return m_mkey;
+        }
+        void setHWID(const std::string& HW_ID);
+        inline void setMID(const std::string& M_ID)  { m_mid = M_ID; }
+        inline void setMKEY(const std::string& M_KEY) { m_mkey = M_KEY; }
 
-	bool installCellPermit(const std::string& cellpermit);
-	bool importPermitFile(const std::string& path);
+        bool installCellPermit(const std::string& cellpermit);
+        bool importPermitFile(const std::string& path);
 
-	std::string getUserpermit();
+        std::string getUserpermit();
 
-	// Opens a s63 file, finds a corresponding cellpermit among installed,
-	// then decrypted and unziped cell retuns as a memory buffer (yeah, string used just as a byte array)
-	std::string open(const std::string& path);
+        // Opens a s63 file, finds a corresponding cellpermit among installed,
+        // then decrypted and unziped cell retuns as a memory buffer
+        std::vector<uint8_t> open(const std::string& path);
 
-	S63Error decryptAndUnzipCell(const std::string& in_path, const std::string& out_path);
-	S63Error decryptAndUnzipCell(const std::string& in_path, const std::string& cellpermit, const std::string& out_path);
-	
-private:
-	std::string m_mkey;
-	std::string m_mid;
-	std::string m_hwid;
-	std::string m_hwid6;
-	std::unordered_map <std::string, std::string> m_permits;
-};
+        S63Result decryptAndUnzipCell(const std::string& in_path, const std::string& out_path);
+        S63Result decryptAndUnzipCell(const std::string& in_path, const std::string& cellpermit, const std::string& out_path);
+
+    private:
+        std::string m_mkey;
+        std::string m_mid;
+        std::string m_hwid;
+        std::string m_hwid6;
+        std::unordered_map <std::string, std::string> m_permits;
+    };
+}
 
